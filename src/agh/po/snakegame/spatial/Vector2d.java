@@ -1,4 +1,4 @@
-package agh.po.snakegame;
+package agh.po.snakegame.spatial;
 
 import java.util.ArrayList;
 

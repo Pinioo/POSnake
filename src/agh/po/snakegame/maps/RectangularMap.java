@@ -1,11 +1,11 @@
 package agh.po.snakegame.maps;
 
-import agh.po.snakegame.Vector2d;
+import agh.po.snakegame.spatial.Vector2d;
 import agh.po.snakegame.interfaces.IMap;
 import agh.po.snakegame.interfaces.SingleMapElement;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 
 public abstract class RectangularMap implements IMap {
     private HashMap<Vector2d, SingleMapElement> elements;
@@ -19,17 +19,17 @@ public abstract class RectangularMap implements IMap {
         this.elements = new HashMap<>();
     }
 
-    public LinkedList<Vector2d> allPositions(){
-        LinkedList<Vector2d> allPositions = new LinkedList<>();
-        for(int x = this.lowerLeft.getX(); x <= this.upperRight.getX(); x++)
-            for(int y = this.lowerLeft.getY(); y <= this.upperRight.getY(); y++) {
-                allPositions.add(new Vector2d(x, y));
-            }
-        return allPositions;
+    public ArrayList<Vector2d> allPositions() {
+        ArrayList<Vector2d> positions = new ArrayList<>();
+        for (int x = lowerLeft.getX(); x <= upperRight.getX(); x++)
+            for (int y = lowerLeft.getY(); y <= upperRight.getY(); y++)
+                positions.add(new Vector2d(x, y));
+        return positions;
     }
 
-    public LinkedList<Vector2d> border(){
-        LinkedList<Vector2d> border = new LinkedList<>();
+    // Positions on the border of the map
+    public ArrayList<Vector2d> border(){
+        ArrayList<Vector2d> border = new ArrayList<>();
         for (int x = this.lowerLeft.getX(); x < this.upperRight.getX(); x++)
             border.add(new Vector2d(x, this.lowerLeft.getY()));
 
@@ -45,6 +45,7 @@ public abstract class RectangularMap implements IMap {
         return border;
     }
 
+    // What happens if two elements meet at the same position
     protected abstract void collisionEvent(SingleMapElement newElement, SingleMapElement occupyingElement);
 
     @Override
@@ -77,5 +78,9 @@ public abstract class RectangularMap implements IMap {
 
     public int getHeight(){
         return this.upperRight.getY() - this.lowerLeft.getY() + 1;
+    }
+
+    public Vector2d correctPosition(Vector2d requestedPosition) {
+        return new Vector2d(Math.floorMod(requestedPosition.getX(), getWidth()), Math.floorMod(requestedPosition.getY(), getHeight()));
     }
 }

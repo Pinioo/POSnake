@@ -1,6 +1,9 @@
-package agh.po.snakegame;
+package agh.po.snakegame.jfxelements;
 
-import agh.po.snakegame.interfaces.IMapElementObserver;
+import agh.po.snakegame.spatial.MapDirection;
+import agh.po.snakegame.game.SnakeGame;
+import agh.po.snakegame.spatial.Vector2d;
+import agh.po.snakegame.interfaces.IGameObserver;
 import agh.po.snakegame.interfaces.SingleMapElement;
 import agh.po.snakegame.mapelements.Food;
 import agh.po.snakegame.mapelements.SnakeBodyPart;
@@ -12,34 +15,28 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
 
-public class SnakeMapScene extends Scene implements IMapElementObserver {
-    SnakeGame game;
-    Canvas canvas;
-    private static Color BACKGROUND_COLOR = Color.BLACK;
-    private static Color WALL_COLOR = Color.GREY;
-    private static Color FOOD_COLOR = Color.RED;
-    private static Color SNAKE_COLOR = Color.WHITE;
+public class SnakeMapScene extends Scene implements IGameObserver {
+    private SnakeGame game;
+    private Canvas canvas;
+    private static final Color BACKGROUND_COLOR = Color.OLIVEDRAB;
+    private static final Color WALL_COLOR = Color.DARKGRAY;
+    private static final Color FOOD_COLOR = Color.DARKRED;
+    private static final Color SNAKE_COLOR = Color.BROWN;
+    private static final Color SNAKE_HEAD_COLOR = Color.WHITE;
 
     public SnakeMapScene(Parent parent, SnakeGame game){
-        super(parent, game.map.getWidth() * (SnakeGame.rectWidth + SnakeGame.gap) - SnakeGame.gap, game.map.getHeight() * (SnakeGame.rectWidth + SnakeGame.gap) - SnakeGame.gap);
+        super(parent, game.getMap().getWidth() * (SnakeGame.rectWidth + SnakeGame.gap) - SnakeGame.gap, game.getMap().getHeight() * (SnakeGame.rectWidth + SnakeGame.gap) - SnakeGame.gap);
 
         this.game = game;
+        this.game.addObserver(this);
         this.setOnKeyPressed(this::changeSnakeDirection);
 
-
         this.canvas = new Canvas(
-                game.map.getWidth() * (SnakeGame.rectWidth + SnakeGame.gap) - SnakeGame.gap,
-                game.map.getHeight() * (SnakeGame.rectWidth + SnakeGame.gap) - SnakeGame.gap
+                game.getMap().getWidth() * (SnakeGame.rectWidth + SnakeGame.gap) - SnakeGame.gap,
+                game.getMap().getHeight() * (SnakeGame.rectWidth + SnakeGame.gap) - SnakeGame.gap
         );
         this.canvas.getGraphicsContext2D().setFill(BACKGROUND_COLOR);
         this.canvas.getGraphicsContext2D().fillRect(0,0,1000,1000);
-    }
-
-    public void update(){
-        GraphicsContext gc = canvas.getGraphicsContext2D();
-        for(Vector2d position : this.game.map.allPositions())
-            if(this.game.map.isOccupied(position))
-                gc.fillRect(this.getXonMap(position), this.getYonMap(position), SnakeGame.rectWidth, SnakeGame.rectWidth);
     }
 
     @Override
@@ -50,7 +47,11 @@ public class SnakeMapScene extends Scene implements IMapElementObserver {
     @Override
     public void objectAdded(SingleMapElement element) {
         if (element instanceof SnakeBodyPart) {
-            this.fillCircleAtPosition(element.getPosition(), SNAKE_COLOR);
+            SnakeBodyPart previousHead = ((SnakeBodyPart) element).getOwner().getPreviousHead();
+            if(previousHead != null){
+                this.fillCircleAtPosition(previousHead.getPosition(), SNAKE_COLOR);
+            }
+            this.fillCircleAtPosition(element.getPosition(), SNAKE_HEAD_COLOR);
         } else if (element instanceof Wall) {
             this.fillRectAtPosition(element.getPosition(), WALL_COLOR);
         } else if (element instanceof Food) {
@@ -58,6 +59,11 @@ public class SnakeMapScene extends Scene implements IMapElementObserver {
         } else {
             this.fillRectAtPosition(element.getPosition(), BACKGROUND_COLOR);
         }
+    }
+
+    @Override
+    public void gameTerminated() {
+        new SnakeGameEndStats((SnakeGameStage) this.getWindow()).show();
     }
 
     private void fillRectAtPosition(Vector2d position, Color color){
@@ -82,7 +88,7 @@ public class SnakeMapScene extends Scene implements IMapElementObserver {
     }
 
     private void changeSnakeDirection(KeyEvent keyEvent){
-        MapDirection directToSet = this.game.getMap().getSnake().getDirection();
+        MapDirection directToSet;
         switch (keyEvent.getCode()){
             case UP:
                 directToSet = MapDirection.NORTH;
@@ -96,8 +102,14 @@ public class SnakeMapScene extends Scene implements IMapElementObserver {
             case LEFT:
                 directToSet = MapDirection.WEST;
                 break;
+            default:
+                return;
         }
         this.game.getMap().getSnake().changeDirection(directToSet);
+    }
+
+    public Canvas getCanvas(){
+        return this.canvas;
     }
 
     private int getXonMap(Vector2d position){

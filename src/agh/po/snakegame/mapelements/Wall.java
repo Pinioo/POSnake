@@ -1,7 +1,7 @@
 package agh.po.snakegame.mapelements;
 
 import agh.po.snakegame.maps.SnakeMap;
-import agh.po.snakegame.Vector2d;
+import agh.po.snakegame.spatial.Vector2d;
 
 public class Wall extends SnakeMapElement {
     public Wall(Vector2d initialPosition, SnakeMap map) {

@@ -1,7 +1,6 @@
 package agh.po.snakegame.mapelements;
 
-import agh.po.snakegame.Snake;
-import agh.po.snakegame.Vector2d;
+import agh.po.snakegame.spatial.Vector2d;
 
 public class SnakeBodyPart extends SnakeMapElement {
     private final Snake owner;

@@ -1,4 +1,4 @@
-package agh.po.snakegame;
+package agh.po.snakegame.spatial;
 
 public enum MapDirection {
     NORTH(new Vector2d(0,-1)),
